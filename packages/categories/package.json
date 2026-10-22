@@ -1,0 +1,31 @@
+{
+  "name": "@business-operations/categories",
+  "version": "0.1.0",
+  "description": "Transaction categories with parent-child structure for financial reports",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tax-rates": "./src/tax-rates/index.ts",
+    "./embeddings": "./src/embeddings.ts",
+    "./enrich-transactions": "./src/enrich-transactions.ts"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "migrate": "tsx scripts/migrate.ts",
+    "migrate:preview": "tsx scripts/migrate.ts --command preview",
+    "migrate:run": "tsx scripts/migrate.ts --command migrate"
+  },
+  "dependencies": {
+    "@business-operations/pramaan": "workspace:*",
+    "@business-operations/logger": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^25.5.0",
+    "typescript": "catalog:"
+  }
+}

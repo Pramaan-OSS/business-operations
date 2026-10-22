@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")"
+docker compose version >/dev/null
+docker run --rm -v "$PWD:/workspace" -w /workspace oven/bun:1.3.14 bun scripts/local/configure.ts
+docker compose -f compose.yaml -f .runtime/services.compose.json up --build

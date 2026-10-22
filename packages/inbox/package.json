@@ -1,0 +1,28 @@
+{
+  "name": "@business-operations/inbox",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./connector": "./src/connector.ts",
+    "./errors": "./src/errors.ts",
+    "./utils": "./src/utils.ts",
+    "./mailboxes": "./src/mailboxes.ts"
+  },
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test --exit src"
+  },
+  "dependencies": {
+    "@business-operations/db": "workspace:*",
+    "@business-operations/encryption": "workspace:*",
+    "@business-operations/supabase": "workspace:*",
+    "@business-operations/utils": "workspace:*",
+    "zod": "catalog:",
+    "@business-operations/pramaan": "workspace:*"
+  }
+}

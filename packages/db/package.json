@@ -1,0 +1,63 @@
+{
+  "name": "@business-operations/db",
+  "private": true,
+  "scripts": {
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "test": "bun test --exit",
+    "eval:matching:db": "bun run src/scripts/matching-eval-db.ts",
+    "eval:progress": "bun run src/scripts/matching-progress.ts",
+    "eval:similar": "bun run src/scripts/eval-similar-transactions.ts",
+    "test:matching": "bun test src/test/transaction-matching.test.ts",
+    "test:performance": "bun test src/test/transaction-matching.performance.test.ts",
+    "test:integration": "bun test src/test/transaction-matching.integration.test.ts",
+    "test:golden": "bun test src/test/transaction-matching.golden.test.ts",
+    "test:all-matching": "bun test src/test/transaction-matching*.test.ts",
+    "test:reports": "bun test src/test/reports.test.ts",
+    "test:e2e": "bun test src/test/calculations-e2e.test.ts --exit --timeout 30000",
+    "test:e2e:setup": "PGPASSWORD=postgres psql -h ${TEST_DB_HOST:-localhost} -p ${TEST_DB_PORT:-5433} -U postgres -d business-operations_test -f src/test/helpers/setup-test-db.sql && bunx drizzle-kit push --config=drizzle.config.test.ts --force",
+    "test:watch": "bun test --watch",
+    "validate-golden": "bun run src/test/validate-golden-dataset.ts",
+    "typecheck": "tsc --noEmit",
+    "schema:export": "drizzle-kit export --config=../../scripts/local/drizzle.ts"
+  },
+  "exports": {
+    "./client": "./src/client.ts",
+    "./job-client": "./src/job-client.ts",
+    "./worker-client": "./src/worker-client.ts",
+    "./queries": "./src/queries/index.ts",
+    "./errors": "./src/errors.ts",
+    "./bank-provider": "./src/bank-provider.ts",
+    "./schema": "./src/schema.ts",
+    "./sql": "./src/sql.ts",
+    "./utils/api-keys": "./src/utils/api-keys.ts",
+    "./utils/search-query": "./src/utils/search-query.ts",
+    "./utils/health": "./src/utils/health.ts",
+    "./utils/currency": "./src/utils/currency.ts",
+    "./utils/tax": "./src/utils/tax.ts",
+    "./utils/blocklist": "./src/utils/blocklist.ts",
+    "./utils/invoice-recurring": "./src/utils/invoice-recurring.ts",
+    "./bank-sync": "./src/bank-sync.ts"
+  },
+  "dependencies": {
+    "@date-fns/tz": "catalog:",
+    "@date-fns/utc": "^2.1.1",
+    "@business-operations/banking": "workspace:*",
+    "@business-operations/categories": "workspace:*",
+    "@business-operations/encryption": "workspace:*",
+    "@business-operations/invoice": "workspace:*",
+    "@business-operations/logger": "workspace:*",
+    "@business-operations/utils": "workspace:*",
+    "@sindresorhus/slugify": "catalog:",
+    "@types/pg": "^8.20.0",
+    "camelcase-keys": "catalog:",
+    "drizzle-orm": "^0.45.1",
+    "nanoid": "catalog:",
+    "pg": "^8.20.0",
+    "snakecase-keys": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "drizzle-kit": "^0.31.10"
+  }
+}

@@ -1,0 +1,125 @@
+import { createHash } from "node:crypto";
+import { getInvoiceById, updateInvoice, recordDocumentUpload } from "@business-operations/db/queries";
+import { PdfTemplate, renderToBuffer } from "@business-operations/invoice/render";
+import { putObject } from "@business-operations/storage";
+import type { Job } from "bullmq";
+import { DEFAULT_JOB_OPTIONS } from "../../config/job-options";
+import { documentsQueue } from "../../queues/documents";
+import { invoicesQueue } from "../../queues/invoices";
+import type { GenerateInvoicePayload } from "../../schemas/invoices";
+import { getDb } from "../../utils/db";
+import { BaseProcessor } from "../base";
+
+/**
+ * Generate Invoice Processor
+ * Handles PDF generation and storage upload for invoices
+ * Optionally triggers email sending via send-invoice-email job
+ */
+export class GenerateInvoiceProcessor extends BaseProcessor<GenerateInvoicePayload> {
+  async process(job: Job<GenerateInvoicePayload>): Promise<void> {
+    const { invoiceId, deliveryType } = job.data;
+    const db = getDb();
+
+    this.logger.info("Starting invoice generation", {
+      jobId: job.id,
+      invoiceId,
+      deliveryType,
+    });
+
+    // Fetch invoice data
+    const invoiceData = await getInvoiceById(db, { id: invoiceId });
+
+    if (!invoiceData) {
+      this.logger.error("Failed to fetch invoice", { invoiceId });
+      throw new Error(`Invoice not found: ${invoiceId}`);
+    }
+
+    const { user, ...invoice } = invoiceData;
+
+    if (!invoice.template) {
+      this.logger.error("Invoice has no template configured", { invoiceId });
+      throw new Error(`Invoice ${invoiceId} has no template configured`);
+    }
+
+    this.logger.debug("Generating PDF", { invoiceId });
+
+    // Generate PDF buffer
+    const buffer = await renderToBuffer(await PdfTemplate(invoice));
+
+    const filename = `${invoiceData.invoiceNumber}.pdf`;
+    const fullPath = `${invoiceData.teamId}/invoices/${filename}`;
+
+    this.logger.debug("Uploading PDF to storage", {
+      invoiceId,
+      fullPath,
+      fileSize: buffer.length,
+    });
+
+    // Store the PDF locally before making it available for download.
+    try {
+      await putObject({
+        bucket: "vault",
+        path: fullPath,
+        data: buffer,
+      });
+    } catch (uploadError) {
+      const message = uploadError instanceof Error ? uploadError.message : String(uploadError);
+      this.logger.error("Failed to upload PDF", {
+        invoiceId,
+        error: message,
+      });
+      throw new Error(`Failed to upload PDF: ${message}`);
+    }
+
+    await recordDocumentUpload(db, { teamId: invoiceData.teamId, pathTokens: fullPath.split("/"), contentType: "application/pdf", size: buffer.length, checksum: createHash("sha256").update(buffer).digest("hex") });
+    this.logger.debug("PDF uploaded to storage", { invoiceId, fullPath });
+
+    // Update invoice with file path and size using Drizzle
+    const updated = await updateInvoice(db, {
+      id: invoiceId,
+      teamId: invoiceData.teamId,
+      filePath: [invoiceData.teamId, "invoices", filename],
+      fileSize: buffer.length,
+    });
+
+    if (!updated) {
+      this.logger.error("Failed to update invoice with file info", {
+        invoiceId,
+      });
+      throw new Error("Failed to update invoice with file info");
+    }
+
+    // Queue email sending if delivery type is create_and_send
+    if (deliveryType === "create_and_send") {
+      await invoicesQueue.add(
+        "send-invoice-email",
+        {
+          invoiceId,
+          filename,
+          fullPath,
+        },
+        { ...DEFAULT_JOB_OPTIONS, jobId: `invoice-send-${job.id}`, removeOnFail: false },
+      );
+
+      this.logger.debug("Queued send-invoice-email job", { invoiceId });
+    }
+
+    // Queue document processing for classification
+    await documentsQueue.add(
+      "process-document",
+      {
+        filePath: [invoiceData.teamId, "invoices", filename],
+        mimetype: "application/pdf",
+        teamId: invoiceData.teamId,
+      },
+      DEFAULT_JOB_OPTIONS,
+    );
+
+    this.logger.info("Invoice generation completed", {
+      invoiceId,
+      filename,
+      fullPath,
+      deliveryType,
+    });
+  }
+}

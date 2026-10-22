@@ -1,0 +1,30 @@
+{
+  "name": "@business-operations/bot",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@business-operations/cache": "workspace:*",
+    "@business-operations/db": "workspace:*",
+    "@business-operations/documents": "workspace:*",
+    "@business-operations/job-client": "workspace:*",
+    "@business-operations/logger": "workspace:*",
+    "@business-operations/storage": "workspace:*",
+    "@business-operations/supabase": "workspace:*",
+    "@business-operations/utils": "workspace:*",
+    "nanoid": "catalog:"
+  },
+  "devDependencies": {
+    "@business-operations/tsconfig": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

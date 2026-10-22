@@ -1,0 +1,32 @@
+{
+  "name": "@business-operations/banking",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "test": "bun test",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./account": "./src/utils/account.ts",
+    "./rates": "./src/utils/rates.ts",
+    "./feeds": "./src/feeds.ts"
+  },
+  "dependencies": {
+    "@business-operations/cache": "workspace:*",
+    "@business-operations/location": "workspace:*",
+    "@business-operations/logger": "workspace:*",
+    "change-case": "catalog:",
+    "date-fns": "catalog:",
+    "zod": "catalog:",
+    "@business-operations/storage": "workspace:*",
+    "@business-operations/pramaan": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

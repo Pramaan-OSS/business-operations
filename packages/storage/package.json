@@ -1,0 +1,31 @@
+{
+  "name": "@business-operations/storage",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "private": true,
+  "sideEffects": false,
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "lint": "biome check .",
+    "lint:fix": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@business-operations/pramaan": "workspace:*"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./logos": "./src/logos.ts",
+    "./workflow-apps": "./src/workflow-apps.ts",
+    "./outcomes": "./src/outcomes.ts",
+    "./connected-apps": "./src/connected-apps.ts",
+    "./managed-sign-in": "./src/managed-sign-in.ts",
+    "./sign-in": "./src/sign-in.ts",
+    "./email-verification": "./src/email-verification.ts"
+  }
+}

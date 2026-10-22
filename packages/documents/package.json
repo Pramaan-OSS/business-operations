@@ -1,0 +1,32 @@
+{
+  "name": "@business-operations/documents",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./loader": "./src/loaders/loader.ts",
+    "./classifier": "./src/classifier/classifier.ts",
+    "./embed": "./src/embed/embed.ts",
+    "./utils": "./src/utils.ts"
+  },
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test --exit src"
+  },
+  "dependencies": {
+    "@business-operations/pramaan": "workspace:*",
+    "@business-operations/logger": "workspace:*",
+    "@business-operations/utils": "workspace:*",
+    "officeparser": "5.2.2",
+    "zod": "catalog:",
+    "@business-operations/storage": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

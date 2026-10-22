@@ -1,0 +1,1 @@
+export function AssistantMark() { return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="6" stroke="currentColor" /><path d="M8 12h8M12 8v8" stroke="currentColor" /></svg>; }

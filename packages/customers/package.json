@@ -1,0 +1,26 @@
+{
+  "name": "@business-operations/customers",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./enrichment": "./src/enrichment/index.ts"
+  },
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@business-operations/logger": "workspace:*",
+    "@business-operations/pramaan": "workspace:*"
+  },
+  "devDependencies": {
+    "@business-operations/tsconfig": "workspace:*",
+    "@types/node": "^25.5.0",
+    "typescript": "catalog:",
+    "@types/bun": "latest"
+  }
+}

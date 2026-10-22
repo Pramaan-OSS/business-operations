@@ -1,0 +1,38 @@
+{
+  "name": "@business-operations/jobs",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "test": "bun test --exit src",
+    "typecheck": "tsc --noEmit"
+  },
+  "exports": {
+    "./schema": "./src/schema.ts"
+  },
+  "dependencies": {
+    "@business-operations/pramaan": "workspace:*",
+    "@fast-csv/format": "catalog:",
+    "@business-operations/db": "workspace:*",
+    "@business-operations/email": "workspace:*",
+    "@business-operations/encryption": "workspace:*",
+    "@business-operations/notifications": "workspace:*",
+    "@business-operations/storage": "workspace:*",
+    "@business-operations/supabase": "workspace:*",
+    "@business-operations/trpc": "workspace:*",
+    "@business-operations/utils": "workspace:*",
+    "@sindresorhus/slugify": "catalog:",
+    "@zip.js/zip.js": "^2.8.23",
+    "camelcase-keys": "catalog:",
+    "heic-convert": "catalog:",
+    "node-xlsx": "catalog:",
+    "sharp": "catalog:",
+    "zod": "catalog:",
+    "@business-operations/categories": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/heic-convert": "1.2.3"
+  }
+}

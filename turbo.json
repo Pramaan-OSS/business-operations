@@ -1,0 +1,85 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "globalDependencies": [
+    "**/.env"
+  ],
+  "ui": "stream",
+  "tasks": {
+    "topo": {
+      "dependsOn": [
+        "^topo"
+      ]
+    },
+    "build": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env"
+      ],
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "next-env.d.ts",
+        ".expo/**",
+        "dist/**",
+        "build/**",
+        "lib/**"
+      ],
+      "passThroughEnv": [
+        "PRAMAAN_API_KEY",
+        "PRAMAAN_BASE_URL",
+        "PRAMAAN_FAKE",
+        "SUPABASE_SECRET_KEY",
+        "SUPABASE_JWT_SECRET",
+        "INTERNAL_API_KEY",
+        "FILE_KEY_SECRET",
+        "INVOICE_JWT_SECRET",
+        "BUSINESS_OPERATIONS_ENCRYPTION_KEY",
+        "NEXT_PUBLIC_URL",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+        "GIT_COMMIT_SHA",
+        "EMAIL_FROM"
+      ]
+    },
+    "start": {
+      "cache": false
+    },
+    "test": {
+      "cache": false,
+      "env": [
+        "TEST_DATABASE_URL"
+      ]
+    },
+    "dev": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env"
+      ],
+      "persistent": true,
+      "cache": false
+    },
+    "jobs": {
+      "persistent": true,
+      "cache": false
+    },
+    "format": {},
+    "lint": {
+      "dependsOn": [
+        "^topo"
+      ]
+    },
+    "lint:fix": {
+      "dependsOn": [
+        "^topo"
+      ],
+      "cache": false
+    },
+    "typecheck": {
+      "outputs": []
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "@business-operations/cli",
+  "version": "0.1.2",
+  "description": "Command line access for Business Operations",
+  "type": "module",
+  "license": "AGPL-3.0",
+  "keywords": [
+    "business-operations",
+    "cli",
+    "agents",
+    "mcp",
+    "invoices",
+    "finance",
+    "automation"
+  ],
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "business-operations": "dist/bin/business-operations.js"
+  },
+  "scripts": {
+    "dev": "bun run bin/business-operations.ts",
+    "build": "tsup",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "cli-table3": "^0.6.5",
+    "escape-html": "^1.0.3",
+    "commander": "^14.0.3",
+    "open": "^11.0.0",
+    "ora": "^9.3.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/escape-html": "^1.0.4",
+    "tsup": "^8.5.1"
+  },
+  "private": true
+}
