@@ -14,7 +14,7 @@ import { BankFeeds } from "@business-operations/banking/feeds";
 import { FakePramaan } from "@business-operations/pramaan/fake";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import path from "node:path";
-import * as schema from "../schema";
+import * as schema from "../app-schema";
 import { importBankFeed } from "../queries/bank-feed-import";
 import { withReplicas } from "../replicas";
 

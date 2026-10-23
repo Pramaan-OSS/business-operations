@@ -25,7 +25,7 @@
   --inverse: rgba(17,17,17,0.88);
   --inverse-solid: #111111;
   --on-inverse: #ffffff;
-  --thread: --thread-solid;
+  --thread: var(--thread-solid);
   --thread-solid: #2b59d1;
   --on-thread: #ffffff;
   --thread-glow: rgba(43,89,209,0.3);
@@ -120,7 +120,7 @@
   --inverse: rgba(244,244,244,0.9);
   --inverse-solid: #f4f4f4;
   --on-inverse: #111111;
-  --thread: --on-thread;
+  --thread: var(--on-thread);
   --thread-solid: #6b93f0;
   --on-thread: #0b1430;
   --thread-glow: rgba(107,147,240,0.3);
@@ -181,7 +181,7 @@
   --inverse: rgba(244,244,244,0.9);
   --inverse-solid: #f4f4f4;
   --on-inverse: #111111;
-  --thread: --on-thread;
+  --thread: var(--on-thread);
   --thread-solid: #6b93f0;
   --on-thread: #0b1430;
   --thread-glow: rgba(107,147,240,0.3);

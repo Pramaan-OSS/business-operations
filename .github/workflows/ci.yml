@@ -1,0 +1,89 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  PRAMAAN_API_KEY: ""
+  PRAMAAN_FAKE: "1"
+  DO_NOT_TRACK: "1"
+  NEXT_TELEMETRY_DISABLED: "1"
+  TURBO_TELEMETRY_DISABLED: "1"
+  NEXT_PUBLIC_URL: http://localhost:3001
+  NEXT_PUBLIC_API_URL: http://localhost:3002
+  NEXT_PUBLIC_SUPABASE_URL: http://localhost:65431
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-local-public-key
+  SUPABASE_URL: http://localhost:65431
+  SUPABASE_SECRET_KEY: ci-local-service-key
+  SUPABASE_JWT_SECRET: ci-local-signing-secret-at-least-32-characters
+  INTERNAL_API_KEY: ci-local-internal-key
+  FILE_KEY_SECRET: ci-local-file-secret
+  INVOICE_JWT_SECRET: ci-local-invoice-secret
+  BUSINESS_OPERATIONS_ENCRYPTION_KEY: "00000000000000000000000000000000"
+  TZ: UTC
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Run lint
+        run: |
+          bun run lint:ci
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Run typecheck
+        run: |
+          bun run --cwd packages/workbench build
+          bun run --cwd packages/pramaan check-types
+          bun run typecheck --concurrency=2 --env-mode=loose
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: business_operations_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 55463:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:55463/business_operations_test
+      BANK_IMPORT_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:55463/business_operations_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Run test
+        run: |
+          bun run --cwd packages/mcp-apps build
+          bun --bun run --cwd packages/db schema:export > .scratch/ci/schema.sql
+          bun .github/scripts/setup-database.ts
+          bun run test:ci
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Run build
+        run: |
+          bun run build:ci

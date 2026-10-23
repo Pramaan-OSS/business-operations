@@ -68,7 +68,7 @@ function codeForStatus(status: number): ErrorCode {
 }
 
 /** Builds a PramaanError from a non-2xx response: the API's envelope, or a status-based fallback. */
-export async function errorFromResponse(response: Response): Promise<PramaanError> {
+export async function errorFromResponse(response: { status: number; headers: { get(name: string): string | null }; json(): Promise<unknown> }): Promise<PramaanError> {
   const headerId = response.headers.get("x-request-id") ?? undefined;
   let envelope: Record<string, unknown> | undefined;
   try {

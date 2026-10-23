@@ -42,7 +42,7 @@ export async function matchAndUpdateAccountIds({
     if (match) {
       matchedDbIds.add(match.id);
 
-      const updates: Record<string, string | null> = {
+      const updates: { account_id: string; account_reference?: string; iban?: string } = {
         account_id: apiAccount.id,
       };
       if (apiAccount.resource_id) {

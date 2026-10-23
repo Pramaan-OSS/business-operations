@@ -43,8 +43,8 @@ export function BankSearchContent({ enabled, defaultCountryCode, listHeight = "h
       {sync.data && <p>Next check: {new Date(sync.data.nextSyncAt).toLocaleString()}</p>}
     </> : <>
       {saved.data?.map((row, index) => <Button key={row.id} variant="outline" onClick={() => setConnection(row.id)}>Resume bank connection {index + 1}</Button>)}
-      <label className="block">Bank country code<Input value={country} maxLength={2} onChange={event => setCountry(event.target.value.toUpperCase())} /></label>
-      <label className="block">Find your bank<Input value={query} maxLength={200} onChange={event => setQuery(event.target.value)} /></label>
+      <label htmlFor="bank-country-code" className="block">Bank country code<Input id="bank-country-code" value={country} maxLength={2} onChange={event => setCountry(event.target.value.toUpperCase())} /></label>
+      <label htmlFor="bank-search" className="block">Find your bank<Input id="bank-search" value={query} maxLength={200} onChange={event => setQuery(event.target.value)} /></label>
       <p className="text-sm">Connecting gives access to the accounts, balances and transactions you authorise. A monthly rental for each account starts after you authorise the connection.</p>
       <label className="flex gap-2 text-sm"><input type="checkbox" checked={approved} onChange={event => setApproved(event.target.checked)} />I approve this access and understand when the monthly rental starts.</label>
       {banks.data?.institutions.map(bank => <div key={bank.rowRef || bank.name} className="flex items-center justify-between border-b py-2">

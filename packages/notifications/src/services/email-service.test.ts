@@ -12,7 +12,7 @@ test("unconfirmed delivery throws and stops before sending the next recipient", 
 });
 test("delivery keys stay stable for a recipient and differ across recipients", async () => {
  const delivered: SendEmailInput[] = [];
- const service = new EmailService({} as Database, async input => { delivered.push(input); return { messageId: "accepted" }; });
+ const service = new EmailService({} as Database, async input => { delivered.push(input); return { status: "queued", ref: "accepted" }; });
  await service.sendBulk([email("one@example.test"), email("two@example.test")], "invoice_sent");
  await service.sendBulk([email("one@example.test")], "invoice_sent");
  expect(delivered[0]?.idempotencyKey).toBe(delivered[2]?.idempotencyKey);

@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import { REVENUE_CATEGORIES } from "@business-operations/categories";
 import type { Database } from "../client";
 import {
-  getBalanceSheet,
   getCashFlow,
   getExpenses,
   getProfit,
@@ -1314,23 +1313,7 @@ describe("Report Calculations", () => {
     });
   });
 
-  describe("getBalanceSheet", () => {
-    // Note: getBalanceSheet makes 11 parallel queries with complex joins.
-    // Full integration test would require extensive mock setup.
-    // Balance sheet calculation logic is verified in "Balance Sheet Calculation Logic" tests below.
-    test.skip("should calculate balance sheet correctly (integration)", async () => {
-      const result = await getBalanceSheet(mockDb, {
-        teamId: "team-1",
-        currency: "GBP",
-        asOf: "2024-08-31",
-      });
 
-      expect(result).toBeDefined();
-      expect(result.assets).toBeDefined();
-      expect(result.liabilities).toBeDefined();
-      expect(result.equity).toBeDefined();
-    });
-  });
 });
 
 /**

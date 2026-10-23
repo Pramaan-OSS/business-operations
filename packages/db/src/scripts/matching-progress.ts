@@ -148,7 +148,6 @@ function parseArgs() {
 // ─── History persistence ────────────────────────────────
 
 const HISTORY_PATH = join(
-  // @ts-expect-error
   dirname(fileURLToPath(new URL(".", import.meta.url))),
   ".matching-eval-history.json",
 );

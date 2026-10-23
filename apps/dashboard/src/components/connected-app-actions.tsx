@@ -1,18 +1,19 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@business-operations/ui/button";
 import { useTRPC } from "@/trpc/client";
 
 export type Schema = { const?: unknown; default?: unknown; format?: string; type?: string; properties?: Record<string, Schema>; title?: string; description?: string; enum?: string[]; required?: string[]; items?: Schema };
 export function ActionFields({ schema, value, onChange, label }: { schema: Schema; value: unknown; onChange: (value: unknown) => void; label: string }) {
+  const id = useId();
   if (schema.const !== undefined) return <label className="block text-sm">{label}<input className="block border bg-background p-2 w-full" readOnly value={String(schema.const)} /></label>;
   if (schema.type === "object" || schema.properties) return <fieldset className="space-y-3 border p-3"><legend>{label}</legend>{Object.entries(schema.properties || {}).map(([name, child]) => <ActionFields key={name} schema={child} label={`${name}${schema.required?.includes(name) ? " *" : ""}`} value={(value as Record<string, unknown> | undefined)?.[name]} onChange={next => onChange({ ...(value as object || {}), [name]: next })} />)}</fieldset>;
   if (schema.type === "array") {
     const values = Array.isArray(value) ? value : [];
     return <fieldset className="space-y-2 border p-3"><legend>{label}</legend>{values.map((item, index) => <div key={index}><ActionFields schema={schema.items || { type: "string" }} label={`Item ${index + 1}`} value={item} onChange={next => onChange(values.map((v, i) => i === index ? next : v))} /><Button type="button" variant="outline" onClick={() => onChange(values.filter((_, i) => i !== index))}>Remove item</Button></div>)}<Button type="button" variant="outline" onClick={() => onChange([...values, schema.items?.type === "object" ? {} : ""])}>Add item</Button></fieldset>;
   }
-  return <label className="block space-y-1 text-sm"><span>{label}</span>{schema.description && <span className="block text-muted-foreground">{schema.description}</span>}{schema.enum ? <select className="block border bg-background p-2 w-full" value={String(value ?? "")} onChange={e => onChange(e.target.value)}><option value="">Choose</option>{schema.enum.map(option => <option key={option}>{option}</option>)}</select> : schema.type === "boolean" ? <input type="checkbox" checked={value === true} onChange={e => onChange(e.target.checked)} /> : <input className="block border bg-background p-2 w-full" type={schema.type === "number" || schema.type === "integer" ? "number" : "text"} step={schema.type === "integer" ? 1 : "any"} value={String(value ?? "")} onChange={e => onChange(schema.type === "number" || schema.type === "integer" ? Number(e.target.value) : e.target.value)} />}</label>;
+  return <label htmlFor={id} className="block space-y-1 text-sm"><span>{label}</span>{schema.description && <span className="block text-muted-foreground">{schema.description}</span>}{schema.enum ? <select id={id} className="block border bg-background p-2 w-full" value={String(value ?? "")} onChange={e => onChange(e.target.value)}><option value="">Choose</option>{schema.enum.map(option => <option key={option}>{option}</option>)}</select> : schema.type === "boolean" ? <input id={id} type="checkbox" checked={value === true} onChange={e => onChange(e.target.checked)} /> : <input id={id} className="block border bg-background p-2 w-full" type={schema.type === "number" || schema.type === "integer" ? "number" : "text"} step={schema.type === "integer" ? 1 : "any"} value={String(value ?? "")} onChange={e => onChange(schema.type === "number" || schema.type === "integer" ? Number(e.target.value) : e.target.value)} />}</label>;
 }
 export function ConnectedAppActions({ query = "accounting transactions invoices bills", records, reviewId }: { query?: string; records?: unknown; reviewId?: string }) {
   const trpc = useTRPC();

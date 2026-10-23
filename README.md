@@ -1,3 +1,5 @@
+[![CI](https://github.com/Pramaan-OSS/business-operations/actions/workflows/ci.yml/badge.svg)](https://github.com/Pramaan-OSS/business-operations/actions/workflows/ci.yml)
+
 # Business Operations
 
 ```sh
