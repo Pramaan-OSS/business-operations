@@ -78,3 +78,17 @@ test("connection creation does not depend on matching an action description", as
  expect(p.callsTo("apps.connection.start")).toHaveLength(1);
  expect(p.calls.find(call => call.id === "apps.connection.start")?.opts?.idempotencyKey).toBeTruthy();
 });
+
+test("message reads require the owned connection and a catalogue read action", async () => {
+ const fake = new FakePramaan({
+  "apps.connections.list": input => ({ results: (input as {endUserRef:string}).endUserRef === "team.user" ? [{ app: "slack", status: "active" }] : [] }),
+  "apps.catalog.search": () => ({ results: [{ app: "slack", action: "SLACK_FETCH_CONVERSATION_HISTORY", readOnly: true }, { app: "slack", action: "SLACK_SEND_MESSAGE" }] }),
+  "apps.action.read": () => ({ messages: [], nextCursor: "next" }),
+ });
+ const apps = new ConnectedApps(fake);
+ await expect(apps.readMessages("other.user", "slack", "SLACK_FETCH_CONVERSATION_HISTORY", {})).rejects.toThrow("Connect");
+ await expect(apps.readMessages("team.user", "slack", "SLACK_SEND_MESSAGE", {})).rejects.toThrow("read action");
+ expect(await apps.readMessages("team.user", "slack", "SLACK_FETCH_CONVERSATION_HISTORY", {channel:"room"}, "previous")).toEqual({messages:[],nextCursor:"next"});
+ expect(fake.callsTo("apps.action.read")).toEqual([{endUserRef:"team.user",action:"SLACK_FETCH_CONVERSATION_HISTORY",input:{channel:"room"},since:"previous",limit:50}]);
+ expect(fake.callsTo("apps.action.execute")).toEqual([]);
+});

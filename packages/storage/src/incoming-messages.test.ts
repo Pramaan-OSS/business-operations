@@ -19,3 +19,27 @@ test("copies message attachments before source expiry and returns only local lin
   expect(JSON.stringify(result)).not.toContain("2099-01-01");
  } finally { for (const [key, value] of [["STORAGE_ROOT", old.root], ["FILE_KEY_SECRET", old.key]] as const) { if (value === undefined) delete process.env[key]; else process.env[key] = value; } }
 });
+
+test("direct message checkpoints persist empty reads and survive refusals", async () => {
+ const { receiveWhatsapp } = await import("./incoming-messages");
+ const old = process.env.STORAGE_ROOT;
+ process.env.STORAGE_ROOT = await mkdtemp("/tmp/business-operations-adopt-messages-");
+ let fail = false;
+ const client = new FakePramaan({ "whatsapp.inbound-messages.list": input => {
+   if (fail) throw new Error("Refused");
+   const since = (input as { since?: string }).since;
+   return { messages: [], nextCursor: since ? "checkpoint-2" : "checkpoint-1" };
+ } });
+ try {
+   await receiveWhatsapp("team:user", "sender", client);
+   await receiveWhatsapp("team:user", "sender", client);
+   expect(client.calls[1]!.input).toHaveProperty("since", "checkpoint-1");
+   fail = true;
+   await expect(receiveWhatsapp("team:user", "sender", client)).rejects.toThrow("Refused");
+   fail = false;
+   await receiveWhatsapp("team:user", "sender", client);
+   expect(client.calls[3]!.input).toHaveProperty("since", "checkpoint-2");
+   await receiveWhatsapp("other:user", "sender", client);
+   expect(client.calls[4]!.input).toHaveProperty("since", undefined);
+ } finally { if (old === undefined) delete process.env.STORAGE_ROOT; else process.env.STORAGE_ROOT = old; }
+});

@@ -23,6 +23,7 @@
   "types": "./src/index.ts",
   "dependencies": {
     "better-auth": "1.7.10",
-    "@pramaan/sdk": "0.1.4"
+    "@pramaan/sdk": "0.1.4",
+    "zod": "catalog:"
   }
 }

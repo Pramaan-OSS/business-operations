@@ -1,4 +1,6 @@
-import { receiveImessage } from "@business-operations/storage";
+import { ConnectedApps } from "@business-operations/storage/connected-apps";
+import type { JsonObject } from "@business-operations/pramaan";
+import { receiveImessage, receiveWhatsapp } from "@business-operations/storage";
 import { createTRPCRouter, protectedProcedure } from "@api/trpc/init";
 import { reviewOutcome, approveOutcome, outcomeStatus } from "@business-operations/storage/outcomes";
 import { workflowAppChoices } from "@business-operations/storage/workflow-apps";
@@ -22,6 +24,11 @@ const ids = z.enum(["invoice.process", "payments.reconcile", "tax.quote", "notif
 function owner(teamId: string | undefined, userId: string) { if (!teamId) throw new TRPCError({ code: "FORBIDDEN", message: "Choose a team first." }); return `${teamId}:${userId}`; }
 async function safely<T>(action: () => Promise<T>) { try { return await action(); } catch (error) { throw new TRPCError({ code: "PRECONDITION_FAILED", message: unavailableMessage(error) }); } }
 export const workflowsRouter = createTRPCRouter({
+  incomingChat: protectedProcedure.input(z.object({ app: z.string().regex(/^[a-z0-9_-]{1,64}$/), action: z.string().regex(/^[A-Z][A-Z0-9_]{1,127}$/), input: z.record(z.string(), z.unknown()), since: z.string().max(1024).optional() })).mutation(({ ctx, input }) => safely(() => new ConnectedApps().readMessages(owner(ctx.teamId, ctx.session.user.id).replace(":", "."), input.app, input.action, input.input as JsonObject, input.since))),
+  incomingWhatsapp: protectedProcedure.mutation(({ ctx }) => safely(async () => {
+    if (!ctx.teamId || process.env.PRAMAAN_MESSAGING_TEAM_ID !== ctx.teamId || !process.env.PRAMAAN_WHATSAPP_CONNECTION_REF) throw new Error("Incoming messages are not set up yet for this team.");
+    return receiveWhatsapp(owner(ctx.teamId, ctx.session.user.id), process.env.PRAMAAN_WHATSAPP_CONNECTION_REF);
+  })),
   incomingImessage: protectedProcedure.input(z.object({ sender: z.string().min(1).max(320), contact: z.string().min(1).max(320), after: z.string().datetime({ offset: true }).optional(), waitSeconds: z.number().int().min(1).max(900).default(20) })).mutation(({ ctx, input }) => safely(async () => {
     if (!ctx.teamId || process.env.PRAMAAN_MESSAGING_TEAM_ID !== ctx.teamId) throw new Error("Incoming messages are not set up yet for this team.");
     return receiveImessage(owner(ctx.teamId, ctx.session.user.id), input);

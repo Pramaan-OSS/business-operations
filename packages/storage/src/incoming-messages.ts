@@ -18,3 +18,28 @@ export async function receiveImessage(owner: string, input: Caps.ImessageReceive
   }
   return { found: true as const, message: { ...message, files: localFiles } };
 }
+
+/** The platform checkpoint contains the per-conversation positions. Persist even empty pages. */
+export async function receiveWhatsapp(owner: string, connectionRef: string, client?: Pramaan) {
+  const p = client ?? requirePramaan();
+  const path = `${createHash("sha256").update(`${owner}:${connectionRef}`).digest("hex")}.json`;
+  const { getObject } = await import("./index");
+  const stored = await getObject({ bucket: "message-checkpoints", path });
+  const since = stored ? JSON.parse(stored.data.toString()).since as string | undefined : undefined;
+  const result = await p.whatsappInboundMessagesList({ connectionRef, since, limit: 50 });
+  const messages = [];
+  for (const { attachments, ...message } of result.messages) {
+    const files = [];
+    for (const file of attachments ?? []) {
+      const filePath = `${createHash("sha256").update(owner).digest("hex")}/${createHash("sha256").update(file.fileId).digest("hex")}`;
+      await putObject({ bucket: "messages", path: filePath, data: await p.downloadHostedFile(file) });
+      const { signedUrl: url } = await signedUrl({ bucket: "messages", path: filePath, expireIn: 3600, download: true });
+      files.push({ url, contentType: file.contentType, sizeBytes: file.sizeBytes });
+    }
+    messages.push({ ...message, files });
+  }
+  // Save the page before advancing so a browser disconnect cannot lose it.
+  await putObject({ bucket: "message-pages", path: `${path}/${createHash("sha256").update(JSON.stringify(result)).digest("hex")}.json`, data: JSON.stringify({ messages }) });
+  await putObject({ bucket: "message-checkpoints", path, data: JSON.stringify({ since: result.nextCursor ?? since }) });
+  return { messages, hasCheckpoint: !!(result.nextCursor ?? since) };
+}

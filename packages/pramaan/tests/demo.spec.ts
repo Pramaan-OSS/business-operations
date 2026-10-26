@@ -23,13 +23,13 @@ test("offline app connections change for their owner on disconnect and reconnect
   const p = createPramaan({ apiKey: "dummy-offline", fetch: demoFetch });
   const owner = `connection-${randomUUID()}`;
   const other = `connection-${randomUUID()}`;
-  expect((await p.appsConnectionsList({ endUserRef: owner })).results).toHaveLength(1);
+  expect((await p.appsConnectionsList({ endUserRef: owner })).results).toHaveLength(3);
   await p.call("apps.connection.revoke", { app: "demo_accounting", endUserRef: owner }, { idempotencyKey: randomUUID() });
-  expect((await p.appsConnectionsList({ endUserRef: owner })).results).toHaveLength(0);
-  expect((await p.appsConnectionsList({ endUserRef: other })).results).toHaveLength(1);
+  expect((await p.appsConnectionsList({ endUserRef: owner })).results).toHaveLength(2);
+  expect((await p.appsConnectionsList({ endUserRef: other })).results).toHaveLength(3);
   const result = await p.appsConnectionStart({ app: "demo_accounting", endUserRef: owner, redirectUrl: "http://localhost:3011/apps" }, { idempotencyKey: randomUUID() });
   expect(result.connectUrl).toBe("http://localhost:3011/apps");
-  expect((await p.appsConnectionsList({ endUserRef: owner })).results).toHaveLength(1);
+  expect((await p.appsConnectionsList({ endUserRef: owner })).results).toHaveLength(3);
 });
 
 

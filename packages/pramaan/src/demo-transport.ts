@@ -2,7 +2,11 @@ import { actionKeyRequired, ACTION_KEY_REQUIRED } from "./action-keys";
 import { randomUUID } from "node:crypto";
 // Fixed sample token for the offline transport; no browser-specific encoding is required.
 export const demoManagedToken = "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJkZW1vLW1hbmFnZWQtcGVyc29uIiwiZW1haWwiOiJkZW1vLW1hbmFnZWRAZXhhbXBsZS50ZXN0IiwiZW1haWxWZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkRlbW8gYWNjb3VudCJ9.offline-fixture";
-const appConnections = new Map<string, boolean>();
+const appConnections = new Map<string, Set<string>>();
+function connectedApps(owner: string) {
+  if (!appConnections.has(owner)) appConnections.set(owner, new Set(["demo_accounting", "slack", "microsoft_teams"]));
+  return appConnections.get(owner)!;
+}
 const paymentLinks = new Map<string, Record<string, unknown>>();
 const jobs = new Map<string, Record<string, unknown>>();
 const ref = (digit: string) => `ref_${digit.repeat(26)}`;
@@ -49,6 +53,13 @@ export async function demoFetch(rawUrl: string, init: RequestInit): Promise<Resp
     case "auth.user.delete": return body.confirm === true ? reply({ deleted: true }) : reply({ error: { code: "invalid_input", message: "Confirmation is required." } }, 400);
     case "auth.token.verify": return reply(body.token === demoManagedToken ? { valid: true, userId: "demo-managed-person", sessionId: "demo-session", orgId: null, expiresAt: "2099-01-01T00:00:00Z" } : { valid: false });
     case "imessage.message.receive": return job(id, { found: true, message: { rowRef: ref("8"), direction: "inbound", contact: body.contact, kind: "text", text: "Demo incoming message", channel: "imessage", createdAt: new Date().toISOString() } });
+    case "apps.action.read":
+    case "whatsapp.inbound-messages.list": {
+      if (process.env.PRAMAAN_FAKE_INBOUND === "unavailable") return reply({ error: { code: "not_found", message: "Not available yet." } }, 404);
+      if (process.env.PRAMAAN_FAKE_INBOUND === "refused") return reply({ error: { code: "invalid_request", message: "This message read is refused." } }, 400);
+      if (id === "apps.action.read" && !["SLACK_FETCH_CONVERSATION_HISTORY", "MICROSOFT_TEAMS_LIST_CHAT_MESSAGES"].includes(body.action)) return reply({ error: { code: "invalid_request", message: "Choose a reviewed message read action." } }, 400);
+      return reply({ messages: body.since ? [] : [{ ref: ref("7"), ...(id === "apps.action.read" ? { sender: "Demo sender" } : { from: "+447700900001" }), text: "Demo incoming message", receivedAt: "2026-10-26T12:00:00Z" }], nextCursor: "demo-inbound-checkpoint" });
+    }
     case "sms.inbound-messages.list": return reply({ results: [{ ref: ref("7"), from: "+447700900001", to: body.to || "+447700900000", contentType: "text", body: "Demo incoming message", receivedAt: new Date().toISOString() }] });
     case "banking.institutions.search": return reply({ institutions: [{ rowRef: ref("0"), name: "Demo bank", countries: [body.country || "GB"] }] });
     case "banking.connection.start": return reply({ ref: ref("0"), connectUrl: "https://api.pramaan.dev/connect/link/demo", expiresAt: "2099-01-01T00:00:00Z" });
@@ -60,14 +71,16 @@ export async function demoFetch(rawUrl: string, init: RequestInit): Promise<Resp
     case "finance.consent.revoke": return reply({ status: "revoked" });
     case "apps.catalog.search": {
       const results = [
+        { app: "slack", action: "SLACK_FETCH_CONVERSATION_HISTORY", readOnly: true, description: "Read connected channel messages", inputSchema: { type: "object", properties: { channel: { type: "string" } }, required: ["channel"] } },
+        { app: "microsoft_teams", action: "MICROSOFT_TEAMS_LIST_CHAT_MESSAGES", readOnly: true, description: "Read connected chat messages", inputSchema: { type: "object", properties: { chat_id: { type: "string" } }, required: ["chat_id"] } },
         { app: "demo_accounting", action: "DEMO_LIST_ACCOUNTS", readOnly: true, description: "Read demo chart of accounts", inputSchema: { type: "object", properties: {} } },
         { app: "demo_accounting", action: "DEMO_CREATE_INVOICE", description: "Create a demo invoice", inputSchema: { type: "object", properties: { customer: { type: "string" }, amount: { type: "number" }, currency: { type: "string" } }, required: ["customer", "amount", "currency"] } },
       ];
       return reply({ results: results.filter(row => !body.app || row.app === body.app) });
     }
-    case "apps.connections.list": return reply({ results: appConnections.get(body.endUserRef) === false ? [] : [{ app: "demo_accounting", status: "active", access: "read-write" }] });
-    case "apps.connection.start": appConnections.set(body.endUserRef, true); return reply({ connectUrl: body.redirectUrl });
-    case "apps.connection.revoke": appConnections.set(body.endUserRef, false); return reply({ revoked: 1 });
+    case "apps.connections.list": return reply({ results: [...connectedApps(body.endUserRef)].map(app => ({ app, status: "active", access: "read-write" })) });
+    case "apps.connection.start": connectedApps(body.endUserRef).add(body.app); return reply({ connectUrl: body.redirectUrl });
+    case "apps.connection.revoke": connectedApps(body.endUserRef).delete(body.app); return reply({ revoked: 1 });
     case "apps.action.execute": return reply({ status: "succeeded", output: { demo: true, action: body.action, input: body.input } });
     case "companies.logo.get": {
       const fileId = "file_01J00000000000000000000000";

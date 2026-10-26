@@ -1,3 +1,5 @@
+import type { AppReadInput, AppReadResult, WhatsappReadInput, WhatsappReadResult } from "./inbound";
+import { validateInbound } from "./inbound";
 export { emailSender, DEFAULT_EMAIL_SENDER } from "./email-sender";
 export { publicBankReturnAddress, BANK_RETURN_ADDRESS_NOTICE, BankReturnAddressError } from "./bank-return-address";
 export { embedInSpace, EMBEDDING_BATCH_SIZE } from "./embedding-batch";
@@ -201,6 +203,8 @@ export const Cap = {
   appsConnectionsList: "apps.connections.list",
   appsConnectionRevoke: "apps.connection.revoke",
   appsActionExecute: "apps.action.execute",
+  appsActionRead: "apps.action.read",
+  whatsappInboundMessagesList: "whatsapp.inbound-messages.list",
 
   // Sign-in
   authSocialExchange: "auth.social.exchange",
@@ -295,6 +299,9 @@ export class Pramaan {
     private readonly waitForRateLimit?: WaitForModel
   ) {}
 
+  appsActionRead(input: AppReadInput) { return this.call(Cap.appsActionRead, input) as Promise<AppReadResult>; }
+  whatsappInboundMessagesList(input: WhatsappReadInput) { return this.call(Cap.whatsappInboundMessagesList, input) as Promise<WhatsappReadResult>; }
+
   get raw(): PramaanClient {
     return this.client;
   }
@@ -310,10 +317,12 @@ export class Pramaan {
     validatePaymentLinks(id, "input", input);
     validateBanking(id, "input", input);
     validateApps(id, "input", input);
+    validateInbound(id, "input", input);
     const result = await this.client.call(id, input, opts);
     validatePaymentLinks(id, "result", result);
     validateBanking(id, "result", result);
     validateApps(id, "result", result);
+    validateInbound(id, "result", result);
     if (id === Cap.documentExtract) return validateDocumentExtraction(result);
     return id === Cap.imessageMessageReceive ? validateImessageResult(result) : result;
   }

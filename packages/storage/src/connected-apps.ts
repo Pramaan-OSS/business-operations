@@ -54,6 +54,11 @@ export class ConnectedApps {
     if (!entry) throw new Error("This feature is not available yet.");
     return { entry, connection };
   }
+  async readMessages(owner: string, app: string, action: string, input: JsonObject, since?: string) {
+    const { entry } = await this.ownedAction(owner, app, action);
+    if (entry.readOnly !== true) throw new Error("Choose a message read action.");
+    return this.p.appsActionRead({ endUserRef: owner, action, input, since, limit: 50 });
+  }
   async read(owner: string, app: string, action: string, input: JsonObject) {
     const { entry } = await this.ownedAction(owner, app, action);
     if (entry.readOnly !== true) throw new Error("Review and approve this change first.");

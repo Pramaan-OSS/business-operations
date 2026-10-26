@@ -184,4 +184,4 @@ export async function listObjectPaths(bucket: string): Promise<string[]> {
   return walk(root);
 }
 
-export { receiveImessage } from "./incoming-messages";
+export { receiveImessage, receiveWhatsapp } from "./incoming-messages";

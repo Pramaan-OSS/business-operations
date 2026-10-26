@@ -1,3 +1,4 @@
+import { validateInbound } from "./inbound";
 import { validateDocumentExtraction } from "./document-extraction";
 import { validateEmbeddingInput } from "./embedding-validation";
 import { validatePaymentLinks } from "./payment-links";
@@ -64,6 +65,7 @@ export class FakePramaan extends Pramaan {
     validatePaymentLinks(id, "input", input);
     validateBanking(id, "input", input);
     validateApps(id, "input", input);
+    validateInbound(id, "input", input);
     if (id === "chat.messages.list" && !/^[A-Za-z0-9_-]{1,128}$/.test((input as { channelId?: string }).channelId || ""))
       throw new Error("chat.messages.list needs a channel id.");
     this.calls.push({ id, input, opts });
@@ -76,6 +78,7 @@ export class FakePramaan extends Pramaan {
       validatePaymentLinks(id, "result", result);
       validateBanking(id, "result", result);
       validateApps(id, "result", result);
+    validateInbound(id, "result", result);
       if (id === "imessage.message.receive") return validateImessageResult(result);
       if (id === "companies.logo.get") return validateLogoResult(result);
       if (id === "document.extract" && !(result && typeof result === "object" && "id" in result && "status" in result)) return validateDocumentExtraction(result);

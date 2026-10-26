@@ -88,6 +88,8 @@ const TABLE: Record<string, Entry> = {
 	// Chat and messaging channels
 	"sms.send": IRR("Send a text message to an E.164 number."),
 	"sms.status": R("Delivery status of a sent text message."),
+	"apps.action.read": R("Read reviewed connected chat messages."),
+	"whatsapp.inbound-messages.list": R("Read incoming direct messages."),
 	"sms.inbound-messages.list": R("List texts received by your numbers."),
 	"whatsapp.message.send": IRRC("Send one WhatsApp message from the connected sender."),
 	"whatsapp.template.send": IRRC("Send one approved WhatsApp template from the connected sender."),
